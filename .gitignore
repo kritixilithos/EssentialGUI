@@ -2,3 +2,4 @@
 .floo
 .flooignore
 *.class
+out/

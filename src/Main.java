@@ -1,12 +1,11 @@
-package com.essential.essentialgui;
-
 import processing.core.PApplet;
+import com.essential.essentialgui.*;
 
 public class Main extends PApplet {
 	private Textarea textarea;
 
 	public static void main (String[] args) {
-		PApplet.main("com.essential.essentialgui.Main");
+		PApplet.main("Main");
 	}
 
 	public void settings() {

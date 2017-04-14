@@ -28,7 +28,7 @@ public class Textarea {
 
 	private boolean started = false;
 
-	Textarea (PApplet parent, int _startX, int _startY, int _width, int _height, int _fontSize, int _background, int _textColor) {
+	public Textarea (PApplet parent, int _startX, int _startY, int _width, int _height, int _fontSize, int _background, int _textColor) {
 		p = parent;
 		posX = new ArrayList<>();
 
@@ -50,7 +50,7 @@ public class Textarea {
 		typed.add("");
 	}
 
-	void updateAndDisplay() {
+	public void updateAndDisplay() {
 		calculateSpaceWidth();
 
 		//Textarea box
@@ -76,7 +76,7 @@ public class Textarea {
 		p.rect(typed.get(current_line).length()==textIndex?cursorX+2:cursorX, startY+2, 1, fontSize-1);
 	}
 
-	void keyUpdate(char key) {
+	public void keyUpdate(char key) {
 		if (p.key == PConstants.CODED) {
 			if (p.keyCode == PConstants.LEFT) {
 				textIndex--;
