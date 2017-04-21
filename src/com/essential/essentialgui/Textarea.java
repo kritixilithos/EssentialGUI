@@ -13,12 +13,9 @@ public class Textarea {
 	private int current_line = 0;
 
 	private int startX, startY,
-					endW, endH;
-
+			    endW, endH;
 	private int textX, textY;
-
-	private int fontSize, background;
-
+	private int fontSize, background, textColor;
 	private int cursorX;
 
 	private int spaceWidth = 0;
@@ -28,19 +25,21 @@ public class Textarea {
 
 	private boolean started = false;
 
-	public Textarea (PApplet parent, int _startX, int _startY, int _width, int _height, int _fontSize, int _background, int _textColor) {
-		p = parent;
+	public Textarea(PApplet parent, int _startX, int _startY, int _width, int _height) {
 		posX = new ArrayList<>();
+
+		p = parent;
 
 		startX = _startX;
 		startY = _startY;
 		endW = _width;
 		endH = _height;
 
-		fontSize = _fontSize;
+		fontSize = 12;
 		p.textSize(fontSize);
 
-		background = _background;
+		background = p.color(255, 255, 255);
+		textColor = p.color(0, 0, 0);
 
 		textX = startX + 2;
 		textY = startY + fontSize;
@@ -48,6 +47,18 @@ public class Textarea {
 		cursorX = textX;
 
 		typed.add("");
+	}
+
+	public void setFontSize(int _fontSize) {
+		fontSize = _fontSize;
+	}
+
+	public void setBackgroundColor(int _background) {
+		background = _background;
+	}
+
+	public void setTextColor(int _textColor) {
+		textColor = _textColor;
 	}
 
 	public void updateAndDisplay() {
@@ -73,18 +84,47 @@ public class Textarea {
 
 		//Cursor
 		p.fill(0);
-		p.rect(typed.get(current_line).length()==textIndex?cursorX+2:cursorX, startY+2, 1, fontSize-1);
+		p.rect(
+				typed.get(current_line).length() == textIndex ? cursorX + 2 : cursorX,
+				startY + 2, 1, fontSize - 1
+		);
 	}
 
 	public void keyUpdate(char key) {
 		if (p.key == PConstants.CODED) {
 			if (p.keyCode == PConstants.LEFT) {
 				textIndex--;
-				if (textIndex < 0) textIndex = 0;
+				if (textIndex < 0)
+					textIndex = 0;
 			} else if (p.keyCode == PConstants.RIGHT) {
 				textIndex++;
 				if (textIndex > typed.get(current_line).length())
 					textIndex = typed.get(current_line).length();
+			} else if (p.keyCode == PConstants.ENTER) {
+				if (current_line == typed.size() - 1)
+					typed.add("");
+				else {
+					for (int i = typed.size() - 1; i > textIndex; i++) {
+						typed.set(
+								i, typed.get(i - 1)
+						);
+					}
+					typed.set(textIndex, "");
+				}
+			} else if (p.keyCode == PConstants.UP) {
+				if (current_line > 0) {
+					current_line -= 1;
+
+					if (textIndex > typed.get(current_line).length())
+						textIndex = typed.get(current_line).length() - 1;
+				}
+			} else if (p.keyCode == PConstants.DOWN) {
+				if (current_line < typed.size() - 1) {
+					current_line += 1;
+
+					if (textIndex > typed.get(current_line).length())
+						textIndex = typed.get(current_line).length();
+				}
 			}
 			newKey = true;
 		} else {
@@ -103,18 +143,17 @@ public class Textarea {
 		}
 	}
 
-
 	private void calculateCursorX() {
 		int oldX = textX + cumSum(posX, posX.size());
 		cursorX = textX;
-		for(int j=startY;j<=textY;j++) {
-			for(int i=textX;i<endW+startX;i++) {
+		for (int j = startY; j <= textY; j++) {
+			for (int i = textX; i < endW + startX; i++) {
 				if (p.get(i,j) != background && i>cursorX) {
-					cursorX=i;
+					cursorX = i;
 				}
 			}
 		}
-		for (int i=typed.get(current_line).length()-1; i>=0; i--) {
+		for (int i = typed.get(current_line).length() - 1; i >= 0; i--) {
 			if (typed.get(current_line).charAt(i) == ' ') {
 				cursorX += spaceWidth;
 			} else {
@@ -138,12 +177,12 @@ public class Textarea {
 		}
 	}
 
-	private void insertCharIntoTyped (char c) {
+	private void insertCharIntoTyped(char c) {
 		typed.set(
 				current_line,
 				typed.get(current_line).substring(0, textIndex) + c +
 				typed.get(current_line).substring(textIndex, typed.get(current_line).length())
-				);
+		);
 	}
 
 	private void insertCharIntoTyped() {
@@ -151,7 +190,7 @@ public class Textarea {
 				current_line,
 				typed.get(current_line).substring(0, textIndex) +
 				typed.get(current_line).substring(textIndex + 1, typed.get(current_line).length())
-				);
+		);
 	}
 
 	private void calculateSpaceWidth() {
@@ -181,7 +220,7 @@ public class Textarea {
 		}
 	}
 
-	private int cumSum (ArrayList<Integer> list, int finalIndex) {
+	private int cumSum(ArrayList<Integer> list, int finalIndex) {
 		if (list.size() == 0) return 0;
 
 		int sum = 0;
