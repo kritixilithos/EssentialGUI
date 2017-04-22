@@ -14,7 +14,7 @@ public class Main extends PApplet {
 
 	public void setup() {
 		background(255);
-		textarea = new Textarea(this, 100, 100, 400, 200, 16, color(255), color(0));
+		textarea = new Textarea(this, 100, 100, 400, 200);
 	}
 
 	public void draw() {

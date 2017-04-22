@@ -7,13 +7,13 @@ import java.util.ArrayList;
 
 public class Textarea {
 	private PApplet p;
-	private ArrayList<Integer> posX;
+	private ArrayList<ArrayList> posX;
 	private ArrayList<String> typed = new ArrayList<>();
 	private int textIndex = 0;
 	private int current_line = 0;
 
 	private int startX, startY,
-			    endW, endH;
+					endW, endH;
 	private int textX, textY;
 	private int fontSize, background, textColor;
 	private int cursorX;
@@ -22,11 +22,13 @@ public class Textarea {
 
 	private boolean newKey = false;
 	private boolean backspaced = false;
+	private boolean entered = false;
 
 	private boolean started = false;
 
 	public Textarea(PApplet parent, int _startX, int _startY, int _width, int _height) {
 		posX = new ArrayList<>();
+		posX.add(new ArrayList<>());
 
 		p = parent;
 
@@ -69,8 +71,12 @@ public class Textarea {
 		p.noStroke();
 		p.rect(startX, startY, endW, endH);
 
-		p.fill(0);
-		p.text(typed.get(current_line), textX, textY);
+		for (int i=0; i<current_line+1; i++) {
+			p.fill(0);
+			//p.println(typed.get(i));
+			//TODO: this should be `typed.get(i)`, but it borks when the current_line is set to i
+			p.text(typed.get(current_line).toString(), textX, textY + i * fontSize);
+		}
 
 		if (newKey) {
 			calculateCursorX();
@@ -84,10 +90,8 @@ public class Textarea {
 
 		//Cursor
 		p.fill(0);
-		p.rect(
-				typed.get(current_line).length() == textIndex ? cursorX + 2 : cursorX,
-				startY + 2, 1, fontSize - 1
-		);
+		p.rect(typed.get(current_line).length() == textIndex ? cursorX + 2 : cursorX,
+				startY + 2 + current_line * fontSize, 1, fontSize - 1);
 	}
 
 	public void keyUpdate(char key) {
@@ -100,17 +104,6 @@ public class Textarea {
 				textIndex++;
 				if (textIndex > typed.get(current_line).length())
 					textIndex = typed.get(current_line).length();
-			} else if (p.keyCode == PConstants.ENTER) {
-				if (current_line == typed.size() - 1)
-					typed.add("");
-				else {
-					for (int i = typed.size() - 1; i > textIndex; i++) {
-						typed.set(
-								i, typed.get(i - 1)
-						);
-					}
-					typed.set(textIndex, "");
-				}
 			} else if (p.keyCode == PConstants.UP) {
 				if (current_line > 0) {
 					current_line -= 1;
@@ -132,9 +125,31 @@ public class Textarea {
 				if (textIndex > 0 && textIndex <= typed.get(current_line).length()) {
 					textIndex--;
 					insertCharIntoTyped();
-					posX.remove(textIndex);
+					posX.get(current_line).remove(textIndex);
 					backspaced = true;
 				}
+			} else if (p.keyCode == 10) {
+				if (current_line == typed.size() - 1) {
+					typed.add("");
+					posX.add(new ArrayList<>());
+					textIndex = 0;
+				} else {
+					//TODO: check this
+					for (int i = typed.size() - 1; i > textIndex; i++) {
+						typed.set(
+								i, typed.get(i - 1)
+						);
+						posX.set(
+								i, posX.get(i - 1)
+						);
+					}
+					typed.set(textIndex, "");
+					//TODO: for posX
+				}
+				current_line ++;
+				cursorX = textX;
+				textIndex = 0;
+				entered = true;
 			} else {
 				insertCharIntoTyped(key);
 				textIndex++;
@@ -144,9 +159,9 @@ public class Textarea {
 	}
 
 	private void calculateCursorX() {
-		int oldX = textX + cumSum(posX, posX.size());
+		int oldX = textX + cumSum(posX.get(current_line), posX.get(current_line).size());
 		cursorX = textX;
-		for (int j = startY; j <= textY; j++) {
+		for (int j = startY + current_line*fontSize+2; j <= startY + current_line*fontSize + fontSize; j++) {
 			for (int i = textX; i < endW + startX; i++) {
 				if (p.get(i,j) != background && i>cursorX) {
 					cursorX = i;
@@ -166,14 +181,15 @@ public class Textarea {
 		int change = newX - oldX;
 
 		if (newKey && change > 0 && !backspaced) {
-			posX.add(textIndex-1, change);
+			posX.get(current_line).add(textIndex-1, change);
 		}
 
 		backspaced = false;
+		entered = false;
 
-		if (posX.size() > 0) {
+		if (posX.get(current_line).size() > 0) {
 			System.out.println(textIndex + " " + posX);
-			cursorX = textX + cumSum(posX, textIndex);
+			cursorX = textX + cumSum(posX.get(current_line), textIndex);
 		}
 	}
 
